@@ -8,6 +8,8 @@
 GameScene::GameScene(std::shared_ptr<SceneManager> sm)
 {
     
+    blockRegistries = BlockRegistry();
+    
     playerCam = std::make_unique<Camera>();
 
     playerCam->position = {0,20,1};
@@ -27,15 +29,6 @@ GameScene::GameScene(std::shared_ptr<SceneManager> sm)
     Inventory[3] = (InventorySlot){64,4};
     
     noiseLite.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-    
-    blockUVS.push_back({0,0});
-    
-        blockUVS.push_back({0,0});
-        
-            blockUVS.push_back({1,0});
-                blockUVS.push_back({2,0});
-                
-                                blockUVS.push_back({0,1});
     
    //Blocks.resize(16 * 16 * 128);
     
@@ -111,15 +104,6 @@ int GameScene::GetBlock(int x, int y, int z) {
     }
 }
 
-int GameScene::getBlockU(int id) {
-    
-    return blockUVS[id].U;
-}
-
-int GameScene::getBlockV(int id) {
-    return blockUVS[id].V;
-}
-
 void GameScene::CalculatePlayerCollisions()
 {
    
@@ -141,7 +125,7 @@ int GameScene::removeBlockFromRay(Ray ray) {
         
         Vector3 roundedPos = Vector3(floorf(pos.x), floorf(pos.y), floorf(pos.z));
         
-        std::cout << std::format("Position: X: {}, Y: {}, Z: {}", roundedPos.x,roundedPos.y,roundedPos.z) << std::endl;
+       // std::cout << std::format("Position: X: {}, Y: {}, Z: {}", roundedPos.x,roundedPos.y,roundedPos.z) << std::endl;
         
         if (GetBlock(roundedPos.x, roundedPos.y,roundedPos.z) > 0 && isBlockExposed(roundedPos.x,roundedPos.y,roundedPos.z) && !blockDestroyed) {
             setBlock(roundedPos.x, roundedPos.y, roundedPos.z, 0);
@@ -149,7 +133,7 @@ int GameScene::removeBlockFromRay(Ray ray) {
             blockDestroyed = true;
         }
         
-        rayDistance += 1;
+        rayDistance += 0.0001f;
         
         
     }
@@ -183,7 +167,7 @@ int GameScene::placeBlockFromRay(Ray ray) {
             normal = Vector3Add(roundedPos,collision.normal);
         }
         
-        std::cout << std::format("Position: X: {}, Y: {}, Z: {}", roundedPos.x,roundedPos.y,roundedPos.z) << std::endl;
+        //std::cout << std::format("Position: X: {}, Y: {}, Z: {}", roundedPos.x,roundedPos.y,roundedPos.z) << std::endl;
         
         if (GetBlock(roundedPos.x, roundedPos.y,roundedPos.z) > 0 && isBlockExposed(roundedPos.x,roundedPos.y,roundedPos.z) && !blockDestroyed && GetBlock(normal.x,normal.y,normal.z) < 1) {
             setBlock(normal.x, normal.y, normal.z, Inventory[currentSlot].id);
@@ -191,7 +175,7 @@ int GameScene::placeBlockFromRay(Ray ray) {
             blockDestroyed = true;
         }
         
-        rayDistance += 1;
+        rayDistance += 0.0001f;
         
         
     }
@@ -199,6 +183,39 @@ int GameScene::placeBlockFromRay(Ray ray) {
     updateLighting();
 
     return 0;
+}
+
+Vector3 GameScene::getBlockVectorFromRay(Ray ray)
+{
+     float maxDistance = 5;
+    
+    float rayDistance = 0;
+    
+    bool blockDestroyed = false;
+    
+    while (rayDistance < maxDistance) {
+        Vector3 pos = Vector3Scale(ray.direction, rayDistance);
+        
+        
+        pos = Vector3Add(ray.position, Vector3Add(pos,{0.5,0.5,0.5}));
+        
+        Vector3 roundedPos = Vector3(floorf(pos.x), floorf(pos.y), floorf(pos.z));
+        //std::cout << std::format("Position: X: {}, Y: {}, Z: {}", roundedPos.x,roundedPos.y,roundedPos.z) << std::endl;
+        
+        if (GetBlock(roundedPos.x, roundedPos.y,roundedPos.z) > 0 && isBlockExposed(roundedPos.x,roundedPos.y,roundedPos.z) && !blockDestroyed) {
+            //setBlock(normal.x, normal.y, normal.z, Inventory[currentSlot].id);
+            return {roundedPos.x,roundedPos.y,roundedPos.z};
+            blockDestroyed = true;
+        }
+        
+        rayDistance += 0.001f;
+        
+        
+    }
+    
+   // updateLighting();
+    
+    return Vector3(INFINITY,INFINITY,INFINITY);
 }
 
 void GameScene::updateLighting()
@@ -369,9 +386,7 @@ void GameScene::Tick()
         
     }
     
-    if (IsKeyPressed(KEY_J)) {
-        jitterMode = !jitterMode;
-    }
+    
     
     if (IsKeyPressed(KEY_F6)) {
         save();
@@ -407,13 +422,18 @@ void GameScene::Tick()
                 bool left = GetBlock(x - 1,y,z) < 1;
                 
                 bool right = GetBlock(x + 1,y,z) < 1;
-                DrawCubeTexture(terrain, {(float)x,(float)y,(float)z}, 1.0f,1.0f,1.0f,WHITE,getBlockU(i),getBlockV(i),top,bottom,left,right,front,back);
+                DrawCubeTexture(terrain, {(float)x,(float)y,(float)z}, 1.0f,1.0f,1.0f,WHITE,top,bottom,left,right,front,back,i);
             }
         }
     }
     rlEnd(); 
-    
-    DrawRay(currentRay,PURPLE);
+
+    Vector3 cubeVec = getBlockVectorFromRay(currentRay);
+        
+    DrawCube(cubeVec,1.01f,1.01f,1.01f,{255,255,255,150});
+
+    //lastcubeVec = cubeVec;
+    //DrawRay(currentRay,PURPLE);
     
     EndMode3D();
     

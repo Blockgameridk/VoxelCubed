@@ -14,6 +14,8 @@
 
 #include "FastNoiseLite.h"
 
+#include "BlockRegistry.h"
+
 #include <sstream>
 
 struct InventorySlot {
@@ -22,11 +24,6 @@ struct InventorySlot {
     int id;
 };
 
-struct BlockUV {
-    float U;
-    
-    float V;
-};
 
 class GameScene : public Scene {
     
@@ -45,10 +42,12 @@ class GameScene : public Scene {
         int* Blocks = new int[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
         
         int* Lighting = new int[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
-        
-        bool jitterMode = false;
-        
+
         bool onGround = false;
+        
+        bool blockMenu = false;
+        
+        Vector3 lastcubeVec;
         
         
         InventorySlot* Inventory = new InventorySlot[10];
@@ -69,7 +68,7 @@ class GameScene : public Scene {
         
         FastNoiseLite noiseLite;
         
-        std::vector<BlockUV> blockUVS;
+        BlockRegistry blockRegistries;
         
         Ray currentRay;
         
@@ -80,14 +79,8 @@ class GameScene : public Scene {
     ~GameScene();
     int getLightValue(int x, int y, int z);
     int GetBlock(int x, int y, int z);
-
-    int getBlockU(int id);
-
-    int getBlockV(int id);
     
     void CalculatePlayerCollisions();
-    
-    void ElonMuskGravitySim();
 
     void calculateUV(float u, float v, float t1, float t2) {
         
@@ -98,17 +91,14 @@ class GameScene : public Scene {
         rlTexCoord2f(baseU + u * (16.0f / 256.0f), baseV + v * (16.0f / 256.0f));
     }
     
-    void DrawCubeTexture(Texture2D texture, Vector3 position, float width, float height, float length, Color color, float t1, float t2,bool top, bool bottom, bool left, bool right, bool front, bool back)
+    void DrawCubeTexture(Texture2D texture, Vector3 position, float width, float height, float length, Color color,bool top, bool bottom, bool left, bool right, bool front, bool back, int id)
     {
-         float x = position.x;
+        float x = position.x;
         float y = position.y;
         float z = position.z;
-
-        if (jitterMode == true) {
-            x  += GetRandomValue(1,10) / 1000.0f;
-            y  += GetRandomValue(1,10) / 1000.0f;
-            z  += GetRandomValue(1,10) / 1000.0f;
-        }
+        
+        Block block = blockRegistries.getBlockData(id - 1);
+        
         // Set desired texture to be enabled while drawing following vertex data
         rlSetTexture(texture.id);
 
@@ -124,6 +114,13 @@ class GameScene : public Scene {
                 // Front Face
                 
                 if (front) {
+                
+                BlockUV uvs = block.GetFaceUV(4);
+                
+                float t1 = uvs.U;
+                
+                float t2 = uvs.V;
+                
                 if (getLightValue(x,y,z + 1) >= 0) {
                     
                     float light = getLightValue(x,y,z + 1);
@@ -147,6 +144,12 @@ class GameScene : public Scene {
                 calculateUV(0.0f, 0.0f, t1, t2); rlVertex3f(x - width/2, y + height/2, z + length/2);  // Top Left Of The Texture and Quad
                 }
                 if (back) {
+                BlockUV uvs = block.GetFaceUV(5);
+                
+                float t1 = uvs.U;
+                
+                float t2 = uvs.V;
+                
                     if (getLightValue(x,y,z - 1) >= 0) {
                     
                     float light = getLightValue(x,y,z - 1);
@@ -171,6 +174,12 @@ class GameScene : public Scene {
                 }
                 // Top Face
                 if (top) {
+                BlockUV uvs = block.GetFaceUV(0);
+                
+                float t1 = uvs.U;
+                
+                float t2 = uvs.V;
+                
                 if (getLightValue(x,y + 1,z) >= 0) {
                     
                     float light = getLightValue(x,y + 1,z);
@@ -188,6 +197,13 @@ class GameScene : public Scene {
                 rlColor4ub(255, 255, 255, 255);
                 if (bottom) {
                     
+                BlockUV uvs = block.GetFaceUV(1);
+                
+                float t1 = uvs.U;
+                
+                float t2 = uvs.V;
+                
+                    
                 if (getLightValue(x,y - 1,z) >= 0) {
                     
                     float light = getLightValue(x,y - 1,z);
@@ -204,6 +220,14 @@ class GameScene : public Scene {
                 }
                 // Right face
                 if (right) {
+                    
+                BlockUV uvs = block.GetFaceUV(3);
+                
+                float t1 = uvs.U;
+                
+                float t2 = uvs.V;
+                
+                    
                 if (getLightValue(x + 1,y,z) >= 0) {
                     
                     float light = getLightValue(x + 1,y,z);
@@ -219,6 +243,13 @@ class GameScene : public Scene {
                 }
                 // Left Face
                 if (left) {
+                    
+                BlockUV uvs = block.GetFaceUV(2);
+                
+                float t1 = uvs.U;
+                
+                float t2 = uvs.V;
+                
                 if (getLightValue(x - 1,y,z) >= 0) {
                     
                     float light = getLightValue(x - 1,y,z);
@@ -241,6 +272,8 @@ class GameScene : public Scene {
 int removeBlockFromRay(Ray ray);
 
 int placeBlockFromRay(Ray ray);
+
+Vector3 getBlockVectorFromRay(Ray ray);
 
 void updateLighting();
 
