@@ -25,14 +25,7 @@
         },
 		{
 			"name": "x64-Debug but it does not break mw's cmake",
-			"generator": "Ninja",
-			"configurationType": "Debug",
-			"inheritEnvironments": [ "msvc_x64_x64" ],
-			"buildRoot": "${projectDir}\\out\\build\\${name}",
-			"installRoot": "${projectDir}\\out\\install\\${name}",
-			"cmakeCommandArgs": "",
-			"buildCommandArgs": "",
-			"ctestCommandArgs": ""
+			"generator": "Ninja"
 		}
     ]
 }
