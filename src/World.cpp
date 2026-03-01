@@ -80,7 +80,7 @@ World::~World()
 
 int World::getLightValue(int x, int y, int z)
 {
-    if (x < CHUNK_SIZE & z < CHUNK_SIZE & y < CHUNK_HEIGHT & x >= 0 & y >= 0 & z >= 0) {
+    if (x < CHUNK_SIZE && z < CHUNK_SIZE && y < CHUNK_HEIGHT && x >= 0 && y >= 0 && z >= 0) {
         return Lighting[flatten1D(x, y, z)];
     } else {
         return 15;
@@ -88,7 +88,7 @@ int World::getLightValue(int x, int y, int z)
 }
 
 int World::GetBlock(int x, int y, int z) {
-    if (x < CHUNK_SIZE & z < CHUNK_SIZE & y < CHUNK_HEIGHT & x >= 0 & y >= 0 & z >= 0) {
+    if (x < CHUNK_SIZE && z < CHUNK_SIZE && y < CHUNK_HEIGHT && x >= 0 && y >= 0 && z >= 0) {
         return Blocks[flatten1D(x, y, z)];
     } else {
         return 0;
@@ -110,11 +110,11 @@ int World::removeBlockFromRay(Ray ray) {
     
     while (rayDistance < maxDistance) {
         Vector3 pos = Vector3Scale(ray.direction, rayDistance);
-        
-        
-        pos = Vector3Add(ray.position, Vector3Add(pos,{0.5,0.5,0.5}));
-        
-        Vector3 roundedPos = Vector3(floorf(pos.x), floorf(pos.y), floorf(pos.z));
+
+
+        pos = Vector3Add(ray.position, Vector3Add(pos, { 0.5,0.5,0.5 }));
+
+        Vector3 roundedPos = { floorf(pos.x), floorf(pos.y), floorf(pos.z) };
         
        // std::cout << std::format("Position: X: {}, Y: {}, Z: {}", roundedPos.x,roundedPos.y,roundedPos.z) << std::endl;
         
@@ -148,7 +148,7 @@ int World::placeBlockFromRay(Ray ray, int id) {
         
         pos = Vector3Add(ray.position, Vector3Add(pos,{0.5,0.5,0.5}));
         
-        Vector3 roundedPos = Vector3(floorf(pos.x), floorf(pos.y), floorf(pos.z));
+        Vector3 roundedPos = { floorf(pos.x), floorf(pos.y), floorf(pos.z) };
         
         RayCollision collision = GetRayCollisionBox(ray, {{roundedPos.x - 0.5f,roundedPos.y - 0.5f,roundedPos.z - 0.5f},{roundedPos.x + 0.5f, roundedPos.y + 0.5f, roundedPos.z + 0.5f}});
         
@@ -206,35 +206,35 @@ void World::renderWorld()
 
 Vector3 World::getBlockVectorFromRay(Ray ray)
 {
-     float maxDistance = 5;
-    
+    float maxDistance = 5;
+
     float rayDistance = 0;
-    
+
     bool blockDestroyed = false;
-    
+
     while (rayDistance < maxDistance) {
         Vector3 pos = Vector3Scale(ray.direction, rayDistance);
-        
-        
-        pos = Vector3Add(ray.position, Vector3Add(pos,{0.5,0.5,0.5}));
-        
-        Vector3 roundedPos = Vector3(floorf(pos.x), floorf(pos.y), floorf(pos.z));
+
+
+        pos = Vector3Add(ray.position, Vector3Add(pos, { 0.5,0.5,0.5 }));
+
+        Vector3 roundedPos = { floorf(pos.x), floorf(pos.y), floorf(pos.z) };
         //std::cout << std::format("Position: X: {}, Y: {}, Z: {}", roundedPos.x,roundedPos.y,roundedPos.z) << std::endl;
-        
-        if (GetBlock(roundedPos.x, roundedPos.y,roundedPos.z) > 0 && isBlockExposed(roundedPos.x,roundedPos.y,roundedPos.z) && !blockDestroyed) {
+
+        if (GetBlock(roundedPos.x, roundedPos.y, roundedPos.z) > 0 && isBlockExposed(roundedPos.x, roundedPos.y, roundedPos.z) && !blockDestroyed) {
             //setBlock(normal.x, normal.y, normal.z, Inventory[currentSlot].id);
-            return {roundedPos.x,roundedPos.y,roundedPos.z};
+            return { roundedPos.x,roundedPos.y,roundedPos.z };
             blockDestroyed = true;
         }
-        
+
         rayDistance += 0.001f;
-        
-        
+
+
     }
-    
-   // updateLighting();
-    
-    return Vector3(INFINITY,INFINITY,INFINITY);
+
+    // updateLighting();
+
+    return { INFINITY, INFINITY, INFINITY };
 }
 
 void World::updateLighting()
@@ -262,7 +262,7 @@ void World::updateLighting()
 }
 
 void World::setBlock(int x,int y,int z, int id) {
-    if (x < CHUNK_SIZE & z < CHUNK_SIZE & y < CHUNK_HEIGHT & x >= 0 & y >= 0 & z >= 0) {
+    if (x < CHUNK_SIZE && z < CHUNK_SIZE && y < CHUNK_HEIGHT && x >= 0 && y >= 0 && z >= 0) {
          Blocks[x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_HEIGHT)] = id;
     } else {
         return;
@@ -285,7 +285,7 @@ bool World::isBlockExposed(int x, int y, int z)
                 
     bool right = GetBlock(x + 1,y,z) < 1;
     
-    if (top | bottom | front | back | left | right) {
+    if (top || bottom || front || back || left || right) {
         return true;
     }
     

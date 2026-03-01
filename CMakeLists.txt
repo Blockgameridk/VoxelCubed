@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_BUILD_TYPE, DEBUG)
+
 # TODO: Need to make an automatic script to install llvm or give a warning for the user to install llvm
 # This is so that our compiler uses Clang
 if(WIN32)

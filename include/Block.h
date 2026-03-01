@@ -4,7 +4,7 @@
 
 struct BlockUV {
     float U;
-    
+
     float V;
 };
 

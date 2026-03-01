@@ -10,3 +10,9 @@ build/
 # Ignore editor-specific files
 .vscode/
 .vs/
+
+# Ignore block gamer's file that BREAKS me
+CMakePresets.json
+
+# Ignore save files
+saves/
