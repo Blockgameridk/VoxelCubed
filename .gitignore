@@ -9,3 +9,4 @@ build/
 
 # Ignore editor-specific files
 .vscode/
+.vs/
