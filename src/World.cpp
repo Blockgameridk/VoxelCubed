@@ -567,9 +567,9 @@ void World::save()
                 
                 if (i < 1) continue;
                 
-                int index = x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_HEIGHT);
+                //int index = x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_HEIGHT);
                 
-                file << index << " " << i << std::endl;
+                file << x << " " << y << " " << z << " " << i << std::endl;
             }
         }
     }
@@ -620,7 +620,7 @@ void World::load()
                     
                     //std::cout << std::endl;
                     
-                    Blocks[nums[0]] = nums[1];
+                    setBlock(nums[0],nums[1],nums[2],nums[3]);
                     
                     nums.clear();
         }
@@ -632,6 +632,8 @@ void World::load()
         std::cerr << "Error: File reading failed!" << std::endl;
     
     updateLighting(); 
-        
+    
+    generateMesh();
+    
     file.close();
 }
