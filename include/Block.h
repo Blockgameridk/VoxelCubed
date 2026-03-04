@@ -23,9 +23,11 @@ class Block{
         BlockUV _LeftUV;
         
         BlockUV _RightUV;
+        
+        bool _translucent;
     
     public:
-        Block(BlockUV TopUV, BlockUV BottomUV, BlockUV LeftUV, BlockUV RightUV, BlockUV FrontUV, BlockUV BackUV)  {//TOP // BOTTOM //LEFT // RIGHT // FRONT //BACk
+        Block(BlockUV TopUV, BlockUV BottomUV, BlockUV LeftUV, BlockUV RightUV, BlockUV FrontUV, BlockUV BackUV, bool translucent)  {//TOP // BOTTOM //LEFT // RIGHT // FRONT //BACk
             _TopUV = TopUV;
             
             _BottomUV = BottomUV;
@@ -37,9 +39,11 @@ class Block{
             _FrontUV = FrontUV;
             
             _BackUV = BackUV;
+            
+            _translucent = translucent;
         }
         
-        Block(BlockUV uv) {
+        Block(BlockUV uv, bool translucent) {
             _TopUV = uv;
             
             _BottomUV = uv;
@@ -51,6 +55,8 @@ class Block{
             _FrontUV = uv;
             
             _BackUV = uv;
+            
+            _translucent = translucent;
         }
         
         inline BlockUV GetFaceUV(int faceID) { // TOP // BOTTOM // LEFT // RIGHT // FRONT // BACK
@@ -86,6 +92,10 @@ class Block{
                     
                     break;
             }
+        }
+        
+        inline bool GetTranslucentState() {
+            return _translucent;
         }
     
 };

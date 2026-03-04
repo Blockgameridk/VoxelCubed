@@ -20,6 +20,12 @@ World::World()
     
     Inventory[3] = {64,4};
     
+    Inventory[4] = {64,6};
+    
+    worldMaterial = LoadMaterialDefault();
+    
+    worldMaterial.maps[MATERIAL_MAP_ALBEDO].texture = terrain;
+    
     noiseLite.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
     
    //Blocks.resize(16 * 16 * 128);
@@ -39,7 +45,7 @@ World::World()
                 }
                 
                 if (y == 0) {
-                    Blocks[flatten1D(x, y, z)] = 4;
+                    Blocks[flatten1D(x, y, z)] = 5;
                 }
             }
             
@@ -69,6 +75,9 @@ World::World()
             
         }
     }
+    
+    generateMesh();
+    
 }
 
 World::~World()
@@ -131,6 +140,8 @@ int World::removeBlockFromRay(Ray ray) {
     
     updateLighting();
     
+    generateMesh();
+    
     return 0;
 }
 
@@ -172,13 +183,124 @@ int World::placeBlockFromRay(Ray ray, int id) {
     }
     
     updateLighting();
-
+    
+    generateMesh();
+    
     return 0;
 }
 
 void World::renderWorld()
 {
-    rlBegin(RL_QUADS);
+    Matrix matrix = MatrixTranslate(0,0,0);
+    
+    DrawMesh(worldMesh,worldMaterial,matrix);
+}
+
+void addTriangles(std::vector<float>* Vertices, float x, float y, float z, Vector3 v1, Vector3 v2, Vector3 v3) {
+    Vertices->push_back(x + v1.x);
+    
+    Vertices->push_back(y + v1.y);
+    
+    Vertices->push_back(z + v1.z);
+    
+    Vertices->push_back(x + v2.x);
+    
+    Vertices->push_back(y + v2.y);
+    
+    Vertices->push_back(z + v2.z);
+    
+    Vertices->push_back(x + v3.x);
+    
+    Vertices->push_back(y + v3.y);
+    
+    Vertices->push_back(z + v3.z);
+    
+}
+
+void addQuad(std::vector<float>* Vertices, float x, float y, float z, Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4) {
+    addTriangles(Vertices,x,y,z,v1,v2,v3);
+    
+    addTriangles(Vertices,x,y,z,v4,v1,v3);
+}
+
+void addTriangleUVS(std::vector<float>* UVS, Vector2 uv1, Vector2 uv2, Vector2 uv3) {
+    UVS->push_back(uv1.x);
+    
+    UVS->push_back(uv1.y);
+    
+    UVS->push_back(uv2.x);
+    
+    UVS->push_back(uv2.y);
+    
+    UVS->push_back(uv3.x);
+    
+    UVS->push_back(uv3.y);
+    
+    
+}
+
+void addColorTriangle(std::vector<unsigned char>* COLORS, Color c1, Color c2, Color c3) {
+    COLORS->push_back(c1.r);
+    
+    COLORS->push_back(c1.g);
+    
+    COLORS->push_back(c1.b);
+    
+    COLORS->push_back(c1.a);
+    
+    COLORS->push_back(c2.r);
+    
+    COLORS->push_back(c2.g);
+    
+    COLORS->push_back(c2.b);
+    
+    COLORS->push_back(c2.a);
+    
+    COLORS->push_back(c3.r);
+    
+    COLORS->push_back(c3.g);
+    
+    COLORS->push_back(c3.b);
+    
+    COLORS->push_back(c3.a);
+}
+
+void addQuadUVS(std::vector<float>* UVS, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4) {
+    
+    addTriangleUVS(UVS,uv1,uv2,uv3);
+    
+    addTriangleUVS(UVS,uv4,uv1,uv3);
+    
+}
+
+void addQuadColors(std::vector<unsigned char>* COLORS, Color c1, Color c2, Color c3, Color c4) {
+    addColorTriangle(COLORS,c1,c2,c3);
+    
+    addColorTriangle(COLORS,c4,c1,c3);
+}
+
+Color lightLevelToColor(int lightLevel) {
+    return Color(lightLevel * 17, lightLevel * 17, lightLevel * 17, 255);
+}
+
+void World::generateMesh()
+{
+    std::vector<float> Vertices;
+    
+    std::vector<float> UVS;
+    
+    std::vector<unsigned char> Colors;
+    
+    int triangleCount = 0;
+    
+    if (meshExists != false) {
+        
+        UnloadMesh(worldMesh);
+        
+        meshExists = false;
+        
+    }
+    
     for (int x = 0; x < CHUNK_SIZE; x++) {
         for (int z = 0; z < CHUNK_SIZE; z++) {
             for (int y =0; y < CHUNK_HEIGHT; y++) {
@@ -186,22 +308,163 @@ void World::renderWorld()
                 
                 if (i < 1) continue;
                 
-                bool top = GetBlock(x,y + 1,z) < 1;
+                Block block = blockRegistries.getBlockData(i);
                 
-                bool bottom = GetBlock(x,y - 1,z) < 1;
+                if (isBlockTranslucent(x,y + 1,z)) {
+                    
+                    BlockUV uv = block.GetFaceUV(0);
+                    
+                    int light = getLightValue(x, y + 1,z);
+                    
+                    float t1 = uv.U;
+                    
+                    float t2 = uv.V;
+                    
+                    triangleCount+=2;
+                    
+                    addQuad(&Vertices, x,y,z, {-0.5,0.5,-0.5}, {-0.5,0.5,0.5}, {0.5,0.5,0.5}, {0.5,0.5,-0.5});
+                    
+                    addQuadUVS(&UVS, calculateUV(0.0f, 1.0f, t1, t2), calculateUV(1.0f,1.0f,t1,t2), calculateUV(1.0f,0.0f,t1,t2), calculateUV(0.0f,0.0f,t1,t2));
+                    
+                    addQuadColors(&Colors,lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light));
+                    
+                }
                 
-                bool front = GetBlock(x,y,z+1) < 1;
+                if (isBlockTranslucent(x,y - 1,z)) {
+                    
+                    BlockUV uv = block.GetFaceUV(1);
+                    
+                    int light = getLightValue(x, y - 1,z);
+                    
+                    float t1 = uv.U;
+                    
+                    float t2 = uv.V;
+                    
+                    triangleCount+=2;
+                    
+                    addQuad(&Vertices, x,y,z, {-0.5,-0.5,-0.5}, {0.5,-0.5,-0.5}, {0.5,-0.5,0.5}, {-0.5,-0.5,0.5});
+                    
+                    addQuadUVS(&UVS, calculateUV(1.0f, 0.0f, t1, t2), calculateUV(0.0f,0.0f,t1,t2), calculateUV(0.0f,1.0f,t1,t2), calculateUV(1.0f,1.0f,t1,t2));
+                    
+                    addQuadColors(&Colors,lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light));
+                    
+                }
                 
-                bool back = GetBlock(x,y,z-1) < 1;
+                if (isBlockTranslucent(x,y,z + 1)) {
+                    
+                    BlockUV uv = block.GetFaceUV(4);
+                    
+                    int light = getLightValue(x, y,z + 1);
+                    
+                    float t1 = uv.U;
+                    
+                    float t2 = uv.V;
+                    
+                    triangleCount+=2;
+                    
+                    addQuad(&Vertices, x,y,z, {-0.5,-0.5,0.5}, {0.5,-0.5,0.5}, {0.5,0.5,0.5}, {-0.5,0.5,0.5});
+                    
+                    addQuadUVS(&UVS, calculateUV(0.0f, 1.0f, t1, t2), calculateUV(1.0f,1.0f,t1,t2), calculateUV(1.0f,0.0f,t1,t2), calculateUV(0.0f,0.0f,t1,t2));
+                    
+                    addQuadColors(&Colors,lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light));
+                }
                 
-                bool left = GetBlock(x - 1,y,z) < 1;
+                if (isBlockTranslucent(x,y,z - 1)) {
+                    
+                    BlockUV uv = block.GetFaceUV(5);
+                    
+                    int light = getLightValue(x, y,z - 1);
+                    
+                    float t1 = uv.U;
+                    
+                    float t2 = uv.V;
+                    
+                    triangleCount+=2;
+                    
+                    addQuad(&Vertices, x,y,z, {-0.5,-0.5,-0.5}, {-0.5,0.5,-0.5}, {0.5,0.5,-0.5}, {0.5,-0.5,-0.5});
+                    
+                    addQuadUVS(&UVS, calculateUV(1.0f, 1.0f, t1, t2), calculateUV(1.0f,0.0f,t1,t2), calculateUV(0.0f,0.0f,t1,t2), calculateUV(0.0f,1.0f,t1,t2));
+                    
+                    addQuadColors(&Colors,lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light));
+                }
                 
-                bool right = GetBlock(x + 1,y,z) < 1;
-                DrawCubeTexture(terrain, {(float)x,(float)y,(float)z}, 1.0f,1.0f,1.0f,WHITE,top,bottom,left,right,front,back,i);
+                if (isBlockTranslucent(x - 1,y,z)) {
+                    
+                    BlockUV uv = block.GetFaceUV(2);
+                    
+                    int light = getLightValue(x - 1, y,z );
+                    
+                    float t1 = uv.U;
+                    
+                    float t2 = uv.V;
+                    
+                    triangleCount+=2;
+                    
+                    addQuad(&Vertices, x,y,z, {-0.5,-0.5,-0.5}, {-0.5,-0.5,0.5}, {-0.5,0.5,0.5}, {-0.5,0.5,-0.5});
+                    
+                    addQuadUVS(&UVS, calculateUV(0.0f, 1.0f, t1, t2), calculateUV(1.0f,1.0f,t1,t2), calculateUV(1.0f,0.0f,t1,t2), calculateUV(0.0f,0.0f,t1,t2));
+                    
+                    addQuadColors(&Colors,lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light));
+                }
+                
+                if (isBlockTranslucent(x + 1,y,z)) {
+                    
+                    BlockUV uv = block.GetFaceUV(3);
+                    
+                    int light = getLightValue(x + 1, y,z);
+                    
+                    float t1 = uv.U;
+                    
+                    float t2 = uv.V;
+                    
+                    triangleCount+=2;
+                    
+                    addQuad(&Vertices, x,y,z, {0.5,-0.5,-0.5}, {0.5,0.5,-0.5}, {0.5,0.5,0.5}, {0.5,-0.5,0.5});
+                    
+                    addQuadUVS(&UVS, calculateUV(1.0f, 1.0f, t1, t2), calculateUV(1.0f,0.0f,t1,t2), calculateUV(0.0f,0.0f,t1,t2), calculateUV(0.0f,1.0f,t1,t2));
+                    
+                    addQuadColors(&Colors,lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light));
+                }
+                
+                
+                //bool bottom = GetBlock(x,y - 1,z) < 1;
+                
+                //bool front = GetBlock(x,y,z+1) < 1;
+                
+                //bool back = GetBlock(x,y,z-1) < 1;
+                
+               // bool left = GetBlock(x - 1,y,z) < 1;
+                
+                //bool right = GetBlock(x + 1,y,z) < 1;
+                
+                
             }
         }
     }
-    rlEnd(); 
+    
+    //float* verts = Vertices.data();
+    
+    worldMesh = { 0 };
+    
+    worldMesh.triangleCount = triangleCount;
+    
+    worldMesh.vertexCount = triangleCount * 3;
+    
+    worldMesh.vertices = (float *)MemAlloc(worldMesh.vertexCount*3*sizeof(float));;
+    
+    worldMesh.texcoords = (float *)MemAlloc(worldMesh.vertexCount*2*sizeof(float));;
+    
+    worldMesh.colors = (unsigned char *)MemAlloc(worldMesh.vertexCount*4*sizeof(unsigned char));;
+    
+    std::copy(Vertices.begin(), Vertices.end(), worldMesh.vertices);
+    
+    std::copy(UVS.begin(), UVS.end(), worldMesh.texcoords);
+    
+    std::copy(Colors.begin(), Colors.end(), worldMesh.colors);
+
+    UploadMesh(&worldMesh, false);
+    
+    meshExists = true;
 }
 
 Vector3 World::getBlockVectorFromRay(Ray ray)
@@ -246,7 +509,7 @@ void World::updateLighting()
             }
             
             for (int y = CHUNK_HEIGHT - 1; y >= 0; y--) {
-                if (GetBlock(x,y,z) < 1) {
+                if (GetBlock(x,y,z) < 1 || isBlockTranslucent(x,y,z)) {
                 
                 Lighting[x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_HEIGHT)] = 15;
                 

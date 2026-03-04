@@ -16,7 +16,7 @@ class BlockRegistry {
     
     Block getBlockData(int id) {
         
-        return Blocks[id];
+        return Blocks[id - 1];
         
     }
     
