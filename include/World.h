@@ -24,6 +24,8 @@
 
 #include <algorithm>
 
+#include "Chunk.h"
+
 struct InventorySlot {
     int stack;
     
@@ -46,6 +48,14 @@ class World {
     
     bool meshExists = false;
     
+    std::map<Vector2, Chunk> chunks;
+    
+    void addChunk(int cx, int cy);
+    
+    void removeChunk(int cx, int cy);
+    
+    void renderChunks();
+    
     Material worldMaterial;
     
         FastNoiseLite noiseLite;
@@ -57,17 +67,9 @@ class World {
     
         BlockRegistry blockRegistries = BlockRegistry();
     
-        const int CHUNK_SIZE = 64;
-        
-        const int CHUNK_HEIGHT = 256;
-    
         int* Blocks = new int[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
         
         int* Lighting = new int[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
-        
-        inline int flatten1D(int x, int y, int z) {//Takes 3D Voxel Coordinates and Flatten it based on the Chunk Size and Height
-           return x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_HEIGHT);
-        }
         
         World();
         ~World();

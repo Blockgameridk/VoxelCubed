@@ -1,5 +1,12 @@
 #include "World.h"
 
+void World::addChunk(int cx, int cy)
+{
+    Chunk c = Chunk(cx,cy);
+    // ==chunks[{0,0}] = Chunk(cx,cy);
+    
+}
+
 World::World()
 {
     playerCam = std::make_unique<Camera>();
@@ -100,7 +107,7 @@ int World::GetBlock(int x, int y, int z) {
     if (x < CHUNK_SIZE && z < CHUNK_SIZE && y < CHUNK_HEIGHT && x >= 0 && y >= 0 && z >= 0) {
         return Blocks[flatten1D(x, y, z)];
     } else {
-        return 0;
+        return 1;
     }
 }
 
