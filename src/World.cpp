@@ -4,6 +4,7 @@ void World::addChunk(int cx, int cy)
 {
     Chunk c = Chunk(cx,cy);
     // ==chunks[{0,0}] = Chunk(cx,cy);
+    chunks.push_back(c);
     
 }
 
@@ -83,6 +84,12 @@ World::World()
         }
     }
     
+    for (int x = -4; x < 4; x++) {
+        for (int y = -4; y < 4; y++) {
+            addChunk(x,y);
+        }
+    }
+    
     generateMesh();
     
 }
@@ -107,7 +114,7 @@ int World::GetBlock(int x, int y, int z) {
     if (x < CHUNK_SIZE && z < CHUNK_SIZE && y < CHUNK_HEIGHT && x >= 0 && y >= 0 && z >= 0) {
         return Blocks[flatten1D(x, y, z)];
     } else {
-        return 1;
+        return 0;
     }
 }
 
@@ -198,9 +205,18 @@ int World::placeBlockFromRay(Ray ray, int id) {
 
 void World::renderWorld()
 {
-    Matrix matrix = MatrixTranslate(0,0,0);
+    // Matrix matrix = MatrixTranslate(0 ,0,0);
     
-    DrawMesh(worldMesh,worldMaterial,matrix);
+    // DrawMesh(worldMesh,worldMaterial,matrix);
+    
+    for (Chunk c : chunks) {
+        Vector2 chunkCoords = c.getPosition();
+        
+        Matrix matrix = MatrixTranslate(chunkCoords.x * CHUNK_SIZE,0,chunkCoords.y * CHUNK_SIZE);
+        
+        DrawMesh(worldMesh,worldMaterial,matrix);
+    }
+    
 }
 
 void addTriangles(std::vector<float>* Vertices, float x, float y, float z, Vector3 v1, Vector3 v2, Vector3 v3) {

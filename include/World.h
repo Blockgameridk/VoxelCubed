@@ -48,7 +48,7 @@ class World {
     
     bool meshExists = false;
     
-    std::map<Vector2, Chunk> chunks;
+    std::vector<Chunk> chunks;
     
     void addChunk(int cx, int cy);
     
