@@ -11,7 +11,9 @@ void World::addChunk(int cx, int cy)
 World::World()
 {
     playerCam = std::make_unique<Camera>();
-
+    
+    player = std::make_unique<Player>();
+    
     playerCam->position = {0,20,1};
     
     playerCam->target = {0,0,0};
@@ -53,7 +55,7 @@ World::World()
                 }
                 
                 if (y == 0) {
-                    Blocks[flatten1D(x, y, z)] = 5;
+                    Blocks[flatten1D(x, y, z)] = 2;
                 }
             }
             
@@ -205,17 +207,17 @@ int World::placeBlockFromRay(Ray ray, int id) {
 
 void World::renderWorld()
 {
-    // Matrix matrix = MatrixTranslate(0 ,0,0);
+     Matrix matrix = MatrixTranslate(-player->Position.x,-player->Position.y,-player->Position.z);
     
-    // DrawMesh(worldMesh,worldMaterial,matrix);
+     DrawMesh(worldMesh,worldMaterial,matrix);
     
-    for (Chunk c : chunks) {
-        Vector2 chunkCoords = c.getPosition();
+    // for (Chunk c : chunks) {
+    //     Vector2 chunkCoords = c.getPosition();
         
-        Matrix matrix = MatrixTranslate(chunkCoords.x * CHUNK_SIZE,0,chunkCoords.y * CHUNK_SIZE);
+    //     Matrix matrix = MatrixTranslate(chunkCoords.x * CHUNK_SIZE,0,chunkCoords.y * CHUNK_SIZE);
         
-        DrawMesh(worldMesh,worldMaterial,matrix);
-    }
+    //     DrawMesh(worldMesh,worldMaterial,matrix);
+    // }
     
 }
 

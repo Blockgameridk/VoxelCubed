@@ -38,6 +38,15 @@ struct VoxelRaycastResult {
     Vector3 Normal;
 };
 
+struct Player {
+    
+    Vector3 Position = Vector3(0,0,0);
+    
+    float pitch = 0.0f;
+    
+    float yaw = 0.0f;
+};
+
 class World {
     private:
     Texture2D terrain = LoadTexture("resources/terrain.png");
@@ -64,7 +73,9 @@ class World {
         InventorySlot* Inventory = new InventorySlot[10];
     
         std::unique_ptr<Camera> playerCam; //Replace this with a playerController class to prevent far land issues at greater distances
-    
+        
+        std::unique_ptr<Player> player;
+        
         BlockRegistry blockRegistries = BlockRegistry();
     
         int* Blocks = new int[CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT];
