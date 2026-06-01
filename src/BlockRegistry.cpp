@@ -3,7 +3,7 @@
 BlockRegistry::BlockRegistry()
 {
     
-    Blocks.push_back(Block({0,0}, {2,0}, {3,0}, {3,0}, {3,0} ,{3,0}, false)); //Grass
+    Blocks.push_back(Block({0,0}, {2,0}, {3,0}, {3,0}, {3,0} ,{3,0}, false, Color(230,230,0))); //Grass
     
     Blocks.push_back(Block({1,0}, false)); //Stone
     

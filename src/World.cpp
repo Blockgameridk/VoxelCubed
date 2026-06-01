@@ -308,6 +308,12 @@ Color lightLevelToColor(int lightLevel) {
     return Color(lightLevel * 17, lightLevel * 17, lightLevel * 17, 255);
 }
 
+Color lightLevelToColor(Color rgb, int lightLevel) {
+    
+    return Color((rgb.r / 17) * lightLevel, (rgb.g / 17) * lightLevel, (rgb.b / 17) * lightLevel, 255);
+    
+}
+
 void World::generateMesh()
 {
     std::vector<float> Vertices;
@@ -339,6 +345,8 @@ void World::generateMesh()
                     
                     BlockUV uv = block.GetFaceUV(0);
                     
+                    Color col = block.GetFaceColor(0);
+                    
                     int light = getLightValue(x, y + 1,z);
                     
                     float t1 = uv.U;
@@ -351,7 +359,7 @@ void World::generateMesh()
                     
                     addQuadUVS(&UVS, calculateUV(0.0f, 1.0f, t1, t2), calculateUV(1.0f,1.0f,t1,t2), calculateUV(1.0f,0.0f,t1,t2), calculateUV(0.0f,0.0f,t1,t2));
                     
-                    addQuadColors(&Colors,lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light),lightLevelToColor(light));
+                    addQuadColors(&Colors,lightLevelToColor(col,light),lightLevelToColor(col,light),lightLevelToColor(col,light),lightLevelToColor(col,light));
                     
                 }
                 
